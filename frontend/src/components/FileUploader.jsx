@@ -35,7 +35,7 @@ const FileUploader = () => {
             });
 
             setUploading(false);
-            setStatusMessage(`🎉 Success! Server saved: ${response.data.filename}`);
+            setStatusMessage(`🎉 Success! Server saved: ${response.data.data.fileName}`);
             setFile(null); // Reset the input state after successful upload
         } catch (error) {
             setUploading(false);
