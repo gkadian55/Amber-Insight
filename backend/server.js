@@ -1,15 +1,14 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-const connectDB = require('./config/db'); // 🟢 Import our connection script
+const connectDB = require('./config/db');
 
-// Point dotenv specifically to the root folder's .env file
 require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// 🟢 Connect to the Grid (Database)
+// Connect to MongoDB
 connectDB();
 
 // Essential Middleware
