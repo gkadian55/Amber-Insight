@@ -23,6 +23,9 @@ const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 app.use(cors());
 app.use(express.json());
 
+// Serve uploaded files statically so the frontend can display them if needed
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 // Base Server Verification Route
 app.get('/', (req, res) => {
     res.send("Amber Insight Server Core is Online.");
@@ -90,11 +93,19 @@ app.post('/api/documents/upload', upload.single('file'), async (req, res) => {
         // Capture the generated text block from the payload return structure
         const aiAnalysisResult = aiResponse.text || "AI layer executed but returned an empty text string.";
 
-        // Clean up and parse the lines to look for bulleted key insights for our array field
+        // 🟢 FIX: Specialized array parsing to filter out generic layout headers and capture true target insights
         const processedInsights = aiAnalysisResult
             .split('\n')
-            .filter(line => line.trim().startsWith('-') || line.trim().match(/^\d+\./))
-            .map(line => line.replace(/^[-\d.\s]+/, '').trim());
+            .map(line => line.trim())
+            // Filter for lines starting with list tokens while dropping structural system titles
+            .filter(line => {
+                const isListItem = line.startsWith('-') || line.startsWith('*') || /^\d+\.\s/.test(line);
+                const isSectionHeader = line.toLowerCase().includes('summary') || line.toLowerCase().includes('comprehensive');
+                return isListItem && !isSectionHeader;
+            })
+            // Strip structural prefixes (e.g., "- ", "1. ") to keep plain insight content clean
+            .map(line => line.replace(/^[-*\d.\s]+/, '').trim())
+            .filter(line => line.length > 0); // Omit accidental whitespace lines
 
         // 4. Construct a new structural record inside our Mongoose schema
         const newDocument = new Document({
@@ -118,6 +129,39 @@ app.post('/api/documents/upload', upload.single('file'), async (req, res) => {
     } catch (error) {
         console.error("❌ Pipeline Processing Failure:", error.message);
         res.status(500).json({ error: error.message });
+    }
+});
+
+/**
+ * @route   GET /api/documents
+ * @desc    Retrieves all analyzed document profiles from the cluster sorted by newest first
+ * @access  Public
+ */
+app.get('/api/documents', async (req, res) => {
+    try {
+        const documents = await Document.find().sort({ createdAt: -1 });
+        res.status(200).json(documents);
+    } catch (error) {
+        console.error("❌ History Retrieval Failure:", error.message);
+        res.status(500).json({ error: "Failed to fetch document tracking list." });
+    }
+});
+
+/**
+ * @route   GET /api/documents/:id
+ * @desc    Fetches a single standalone document analysis profile by its MongoDB ObjectId
+ * @access  Public
+ */
+app.get('/api/documents/:id', async (req, res) => {
+    try {
+        const document = await Document.findById(req.params.id);
+        if (!document) {
+            return res.status(404).json({ error: "Document analysis profile not found." });
+        }
+        res.status(200).json(document);
+    } catch (error) {
+        console.error("❌ Single Document Sync Failure:", error.message);
+        res.status(500).json({ error: "Invalid ID format or database error." });
     }
 });
 

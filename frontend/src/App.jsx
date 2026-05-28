@@ -1,20 +1,19 @@
 import React from 'react';
-import FileUploader from './components/FileUploader';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import UploadPage from './components/UploadPage';
+import ResultsPage from './components/ResultsPage';
 
 function App() {
     return (
-        <main>
-            <header style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-                <h1 style={{ color: '#3b82f6', margin: '0 0 0.5rem 0', letterSpacing: '-0.025em' }}>
-                    Amber Insight
-                </h1>
-                <p style={{ color: '#9ca3af', margin: 0 }}>
-                    Cognitive Document Synthesis Engine
-                </p>
-            </header>
-
-            <FileUploader />
-        </main>
+        <Router>
+            <div style={{ width: '100%', minHeight: '100vh', backgroundColor: '#0f172a' }}>
+                <Routes>
+                    <Route path="/" element={<Navigate to="/upload" replace />} />
+                    <Route path="/upload" element={<UploadPage />} />
+                    <Route path="/results/:id" element={<ResultsPage />} />
+                </Routes>
+            </div>
+        </Router>
     );
 }
 
