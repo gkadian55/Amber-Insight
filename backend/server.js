@@ -2,8 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
-const { PDFParse } = require('pdf-parse');
-const { GoogleGenAI } = require('@google/genai'); // Import the modern Google Gen AI SDK
+const { GoogleGenAI } = require('@google/genai'); // Modern Google Gen AI SDK
 const connectDB = require('./config/db');
 const upload = require('./middleware/upload');
 const Document = require('./models/Document');
@@ -23,7 +22,7 @@ const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 app.use(cors());
 app.use(express.json());
 
-// Serve uploaded files statically so the frontend can display them if needed
+// Serve uploaded files statically so the frontend can reference them if needed
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Base Server Verification Route
@@ -33,9 +32,9 @@ app.get('/', (req, res) => {
 
 /**
  * @route   POST /api/documents/upload
- * @desc    Receives a single PDF document, extracts its text, passes it to 
- * Google Gemini for automated analysis, and saves the full payload to MongoDB.
- * @access  Public (Development Ecosystem)
+ * @desc    Ingests an asset (PDF, PNG, JPG), converts it into an inline base64 block,
+ * and streams it along with a structural prompt directly to Gemini.
+ * @access  Public (Development Ecosystem Baseline)
  */
 app.post('/api/documents/upload', upload.single('file'), async (req, res) => {
     try {
@@ -45,59 +44,55 @@ app.post('/api/documents/upload', upload.single('file'), async (req, res) => {
         }
 
         // 1. Read the physical file buffer from our local uploads directory
-        const dataBuffer = fs.readFileSync(req.file.path);
+        const fileBuffer = fs.readFileSync(req.file.path);
 
-        // 2. Initialize the modern class constructor for PDF text extraction
-        const parser = new PDFParse({ data: dataBuffer });
+        // 2. Map file extension to its corresponding MIME type for Gemini's structural engine
+        const ext = path.extname(req.file.originalname).toLowerCase();
+        let mimeType = 'application/pdf'; // Default fallback
 
-        let extractedText = '';
-        let totalPages = 1;
+        if (ext === '.png') mimeType = 'image/png';
+        if (ext === '.jpg' || ext === '.jpeg') mimeType = 'image/jpeg';
+        if (ext === '.txt') mimeType = 'text/plain';
 
-        try {
-            const textResult = await parser.getText();
-            extractedText = typeof textResult === 'string' ? textResult : (textResult.text || '');
+        console.log(`🤖 Processing multi-format asset: "${req.file.filename}" [MIME: ${mimeType}]`);
+        console.log(`🚀 Streaming asset data and system analytics core prompt to Gemini...`);
 
-            const infoResult = await parser.getInfo();
-            totalPages = infoResult?.total || 1;
-        } finally {
-            // Memory clean up: Free up local server system workers
-            if (typeof parser.destroy === 'function') {
-                await parser.destroy();
-            }
-        }
+        // 3. 🧠 MULTIMODAL DIRECT PASS CONTEXT PROCESSING (Fixed Part Array Structure)
+        const systemPrompt = `
+            You are the core analytical engine of Amber Insight. 
+            Analyze the provided document named "${req.file.originalname}" thoroughly.
+            
+            Provide your analysis in two clear parts:
+            1. A comprehensive summary of the core message, themes, or purpose of the document.
+            2. A list of 3-5 critical, actionable key insights or structural data points discovered inside.
+        `;
 
-        // Structural validation check
-        if (!extractedText.trim()) {
-            throw new Error("The document appears to be empty or contains non-extractable text layouts.");
-        }
-
-        // 3. 🧠 THE AI ANALYTICAL PROCESSING LAYER
-        console.log(`🤖 Dispatching text from "${req.file.filename}" to Gemini Cloud...`);
-
-        // Utilizing gemini-2.5-flash for balanced speed, token efficiency, and text processing depth
         const aiResponse = await ai.models.generateContent({
             model: 'gemini-2.5-flash',
-            contents: `
-                You are the core analytical engine of Amber Insight. 
-                Analyze the following raw document text extracted from a file named "${req.file.filename}".
-                
-                Provide your analysis in two clear parts:
-                1. A comprehensive summary of the core message, themes, or purpose of the document.
-                2. A list of 3-5 critical, actionable key insights or structural data points discovered inside.
-
-                Raw Text to Analyze:
-                ${extractedText}
-            `
+            contents: [
+                {
+                    role: 'user',
+                    parts: [
+                        { text: systemPrompt }, // Explicit text part block
+                        {
+                            inlineData: {
+                                data: fileBuffer.toString("base64"), // Pipe raw base64 payload
+                                mimeType: mimeType
+                            }
+                        }
+                    ]
+                }
+            ]
         });
 
         // Capture the generated text block from the payload return structure
-        const aiAnalysisResult = aiResponse.text || "AI layer executed but returned an empty text string.";
+        const aiAnalysisResult = aiResponse.text || "AI engine executed but returned a blank stream.";
 
-        // 🟢 FIX: Specialized array parsing to filter out generic layout headers and capture true target insights
+        // 4. Clean up and parse the lines to isolate target metrics for our array field
         const processedInsights = aiAnalysisResult
             .split('\n')
             .map(line => line.trim())
-            // Filter for lines starting with list tokens while dropping structural system titles
+            // Filter for lines starting with list tokens while dropping high-level system titles
             .filter(line => {
                 const isListItem = line.startsWith('-') || line.startsWith('*') || /^\d+\.\s/.test(line);
                 const isSectionHeader = line.toLowerCase().includes('summary') || line.toLowerCase().includes('comprehensive');
@@ -107,27 +102,27 @@ app.post('/api/documents/upload', upload.single('file'), async (req, res) => {
             .map(line => line.replace(/^[-*\d.\s]+/, '').trim())
             .filter(line => line.length > 0); // Omit accidental whitespace lines
 
-        // 4. Construct a new structural record inside our Mongoose schema
+        // 5. Construct a new structural record inside our Mongoose schema
         const newDocument = new Document({
-            fileName: req.file.filename,
+            fileName: req.file.originalname, // Retain clean human-readable identifier
             fileUrl: `http://localhost:${PORT}/uploads/${req.file.filename}`,
-            rawText: extractedText,
-            summary: aiAnalysisResult, // Hydrating database schema with actual generative text!
-            extractedInsights: processedInsights.length > 0 ? processedInsights : [`Total pages processed: ${totalPages}`]
+            rawText: `[Asset Multi-Format Binary - Ingested via Native Gemini Multimodal Context Pipeline]`,
+            summary: aiAnalysisResult,
+            extractedInsights: processedInsights.length > 0 ? processedInsights : ["Analysis finalized successfully."]
         });
 
-        // 5. Persist the complete document profile directly into MongoDB Cluster
+        // 6. Persist the complete document profile directly into MongoDB Cluster
         const savedDocument = await newDocument.save();
 
-        // 6. Respond back to the React UI dashboard with the completed record profile
+        // 7. Respond back to the React UI dashboard with the completed record profile
         res.status(201).json({
-            message: "Document successfully uploaded, parsed, and analyzed by Gemini!",
+            message: "Asset successfully parsed and analyzed by Gemini Multimodal Core!",
             documentId: savedDocument._id,
             data: savedDocument
         });
 
     } catch (error) {
-        console.error("❌ Pipeline Processing Failure:", error.message);
+        console.error("❌ Multimodal Ingestion Pipeline Failure:", error.message);
         res.status(500).json({ error: error.message });
     }
 });

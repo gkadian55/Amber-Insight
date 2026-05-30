@@ -22,10 +22,13 @@ const storage = multer.diskStorage({
 
 // Filter out non-PDF files on the server layer for security
 const fileFilter = (req, file, cb) => {
-    if (file.mimetype === 'application/pdf') {
+    const allowedExtensions = ['.pdf', '.png', '.jpg', '.jpeg', '.txt'];
+    const ext = path.extname(file.originalname).toLowerCase();
+
+    if (allowedExtensions.includes(ext)) {
         cb(null, true);
     } else {
-        cb(new Error('Invalid file type. Only PDFs are allowed.'), false);
+        cb(new Error('Unsupported file format! Please upload a PDF, TXT, or Image asset.'), false);
     }
 };
 
