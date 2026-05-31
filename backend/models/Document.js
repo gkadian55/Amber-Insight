@@ -21,10 +21,14 @@ const DocumentSchema = new mongoose.Schema({
     extractedInsights: [{
         type: String
     }],
-    createdAt: {
-        type: Date,
-        default: Date.now
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        default: null
     }
+}, {
+    // Automatically handles createdAt and updatedAt Date fields natively
+    timestamps: true
 });
 
 module.exports = mongoose.model('Document', DocumentSchema);

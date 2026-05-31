@@ -6,6 +6,7 @@ const { GoogleGenAI } = require('@google/genai'); // Modern Google Gen AI SDK
 const connectDB = require('./config/db');
 const upload = require('./middleware/upload');
 const Document = require('./models/Document');
+const { optionalAuth } = require('./middleware/auth'); // Import the new security layer
 
 require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 
@@ -25,6 +26,9 @@ app.use(express.json());
 // Serve uploaded files statically so the frontend can reference them if needed
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// Mount Authentication Routing Module (Handles /api/auth/signup and /api/auth/login)
+app.use('/api/auth', require('./routes/authRoutes'));
+
 // Base Server Verification Route
 app.get('/', (req, res) => {
     res.send("Amber Insight Server Core is Online.");
@@ -32,11 +36,11 @@ app.get('/', (req, res) => {
 
 /**
  * @route   POST /api/documents/upload
- * @desc    Ingests an asset (PDF, PNG, JPG), converts it into an inline base64 block,
- * and streams it along with a structural prompt directly to Gemini.
- * @access  Public (Development Ecosystem Baseline)
+ * @desc    Ingests an asset (PDF, PNG, JPG), binds user association if authorized, 
+ * and streams it to Gemini for insight compiling.
+ * @access  Public / User Conditional
  */
-app.post('/api/documents/upload', upload.single('file'), async (req, res) => {
+app.post('/api/documents/upload', optionalAuth, upload.single('file'), async (req, res) => {
     try {
         // Validation check to ensure a physical file was routed through Multer
         if (!req.file) {
@@ -57,7 +61,7 @@ app.post('/api/documents/upload', upload.single('file'), async (req, res) => {
         console.log(`🤖 Processing multi-format asset: "${req.file.filename}" [MIME: ${mimeType}]`);
         console.log(`🚀 Streaming asset data and system analytics core prompt to Gemini...`);
 
-        // 3. 🧠 MULTIMODAL DIRECT PASS CONTEXT PROCESSING (Fixed Part Array Structure)
+        // 3. 🧠 MULTIMODAL DIRECT PASS CONTEXT PROCESSING
         const systemPrompt = `
             You are the core analytical engine of Amber Insight. 
             Analyze the provided document named "${req.file.originalname}" thoroughly.
@@ -73,10 +77,10 @@ app.post('/api/documents/upload', upload.single('file'), async (req, res) => {
                 {
                     role: 'user',
                     parts: [
-                        { text: systemPrompt }, // Explicit text part block
+                        { text: systemPrompt },
                         {
                             inlineData: {
-                                data: fileBuffer.toString("base64"), // Pipe raw base64 payload
+                                data: fileBuffer.toString("base64"),
                                 mimeType: mimeType
                             }
                         }
@@ -92,23 +96,23 @@ app.post('/api/documents/upload', upload.single('file'), async (req, res) => {
         const processedInsights = aiAnalysisResult
             .split('\n')
             .map(line => line.trim())
-            // Filter for lines starting with list tokens while dropping high-level system titles
             .filter(line => {
                 const isListItem = line.startsWith('-') || line.startsWith('*') || /^\d+\.\s/.test(line);
                 const isSectionHeader = line.toLowerCase().includes('summary') || line.toLowerCase().includes('comprehensive');
                 return isListItem && !isSectionHeader;
             })
-            // Strip structural prefixes (e.g., "- ", "1. ") to keep plain insight content clean
             .map(line => line.replace(/^[-*\d.\s]+/, '').trim())
-            .filter(line => line.length > 0); // Omit accidental whitespace lines
+            .filter(line => line.length > 0);
 
         // 5. Construct a new structural record inside our Mongoose schema
         const newDocument = new Document({
-            fileName: req.file.originalname, // Retain clean human-readable identifier
+            fileName: req.file.originalname,
             fileUrl: `http://localhost:${PORT}/uploads/${req.file.filename}`,
             rawText: `[Asset Multi-Format Binary - Ingested via Native Gemini Multimodal Context Pipeline]`,
             summary: aiAnalysisResult,
-            extractedInsights: processedInsights.length > 0 ? processedInsights : ["Analysis finalized successfully."]
+            extractedInsights: processedInsights.length > 0 ? processedInsights : ["Analysis finalized successfully."],
+            // 🟢 AUTH HYDRATION: Connects account if present, otherwise registers null as guest
+            user: req.user ? req.user.id : null
         });
 
         // 6. Persist the complete document profile directly into MongoDB Cluster
@@ -129,12 +133,16 @@ app.post('/api/documents/upload', upload.single('file'), async (req, res) => {
 
 /**
  * @route   GET /api/documents
- * @desc    Retrieves all analyzed document profiles from the cluster sorted by newest first
- * @access  Public
+ * @desc    Retrieves analyzed document profiles. If user is logged in, filters only their history.
+ * Guests receive a 401 error or can be routed to zero context.
+ * @access  Public / User Conditional
  */
-app.get('/api/documents', async (req, res) => {
+app.get('/api/documents', optionalAuth, async (req, res) => {
     try {
-        const documents = await Document.find().sort({ createdAt: -1 });
+        // If logged in, match their unique user ID reference. Guests get an empty array.
+        const queryFilter = req.user ? { user: req.user.id } : { user: "GUEST_NO_HISTORY_STUB" };
+
+        const documents = await Document.find(queryFilter).sort({ createdAt: -1 });
         res.status(200).json(documents);
     } catch (error) {
         console.error("❌ History Retrieval Failure:", error.message);
