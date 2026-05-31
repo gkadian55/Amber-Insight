@@ -1,19 +1,23 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext'; // 🟢 Import Provider
 import UploadPage from './components/UploadPage';
 import ResultsPage from './components/ResultsPage';
+import LoginPage from './components/LoginPage';
+import SignupPage from './components/SignupPage';
 
 function App() {
     return (
-        <Router>
-            <div style={{ width: '100%', minHeight: '100vh', backgroundColor: '#0f172a' }}>
+        <AuthProvider> {/* 🟢 Wrap Core Ecosystem */}
+            <Router>
                 <Routes>
-                    <Route path="/" element={<Navigate to="/upload" replace />} />
-                    <Route path="/upload" element={<UploadPage />} />
+                    <Route path="/" element={<UploadPage />} />
                     <Route path="/results/:id" element={<ResultsPage />} />
+                    <Route path="/login" element={<LoginPage />} />
+                    <Route path="/signup" element={<SignupPage />} />
                 </Routes>
-            </div>
-        </Router>
+            </Router>
+        </AuthProvider>
     );
 }
 
