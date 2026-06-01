@@ -178,7 +178,6 @@ const styles = {
     },
     authBanner: {
         display: 'flex',
-        justifyContent: 'between',
         alignItems: 'center',
         padding: '16px 40px',
         borderBottom: '1px solid #242736',
