@@ -38,7 +38,8 @@ const ResultsPage = () => {
                 <div style={styles.errorCard}>
                     <h3>⚠️ Data Sync Anomaly</h3>
                     <p>{error}</p>
-                    <button onClick={() => navigate('/upload')} style={styles.backButton}>Return to Home Base</button>
+                    {/* 🟢 FIXED: Changed path from /upload to / to point to your actual root route */}
+                    <button onClick={() => navigate('/')} style={styles.backButton}>Return to Home Base</button>
                 </div>
             </div>
         );
@@ -52,7 +53,8 @@ const ResultsPage = () => {
         <div style={styles.panoramicWrapper}>
             {/* Universal Upper Navigation Dock */}
             <div style={styles.actionBar}>
-                <button onClick={() => navigate('/upload')} style={styles.backButton}>
+                {/* 🟢 FIXED: Changed path from /upload to / to cleanly clear context back to the root upload view */}
+                <button onClick={() => navigate('/')} style={styles.backButton}>
                     ← Ingest Another Asset
                 </button>
                 <div style={styles.pageTitleHeader}>Analysis Intelligence Deck</div>

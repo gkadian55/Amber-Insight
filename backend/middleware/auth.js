@@ -1,26 +1,31 @@
 const jwt = require('jsonwebtoken');
 
-/**
- * Custom flexible auth middleware.
- * If a token is provided, it must be valid, and it will append req.user.
- * If no token is provided, it lets the request pass as a guest user.
- */
 const optionalAuth = (req, res, next) => {
-    const authHeader = req.headers.authorization;
+    // 1. Extract the Authorization header safely from the incoming request payload
+    const authHeader = req.header('Authorization');
 
+    // 2. If no header exists, or it doesn't use the 'Bearer ' schema, treat them as a guest profile
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        req.user = null; // No token provided; process as guest
+        console.log("ℹ️ No authentication token provided. Continuing session as guest profile...");
         return next();
     }
 
+    // 3. Strip out the raw token string by splitting off the 'Bearer ' prefix
     const token = authHeader.split(' ')[1];
 
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = { id: decoded.userId };
+        // 4. Decode and verify the signature using your .env variable or the rock-solid fallback string
+        const secretKey = process.env.JWT_SECRET || 'super_secret_amber_insight_key_token_2026';
+        const decoded = jwt.verify(token, secretKey);
+
+        // 5. Attach the decoded user object profile context onto the request lifecycle
+        req.user = decoded;
         next();
-    } catch (error) {
-        console.error("⚠️ JWT Verification Failure:", error.message);
+    } catch (err) {
+        // 6. Log the explicit error to the backend console window for fast tracking
+        console.error("❌ Token verification failed:", err.message);
+
+        // 7. Explicitly halt execution and notify the client UI to dump the stale session token
         return res.status(401).json({ error: "Access token is invalid or expired." });
     }
 };
