@@ -180,6 +180,55 @@ app.get('/api/documents/:id', async (req, res) => {
     }
 });
 
+/**
+ * @route   POST /api/documents/:id/chat
+ * @desc    Executes an interactive chat turn with Gemini using a stored document's summary profile as grounding context
+ * @access  Public / User Conditional
+ */
+app.post('/api/documents/:id/chat', optionalAuth, async (req, res) => {
+    try {
+        const { question } = req.body;
+        if (!question) {
+            return res.status(400).json({ error: "Missing query question statement inside body payload." });
+        }
+
+        // 1. Fetch the targeted document context out of MongoDB
+        const document = await Document.findById(req.params.id);
+        if (!document) {
+            return res.status(404).json({ error: "Contextual document history block not found." });
+        }
+
+        // 2. Formulate a specialized chat command injecting the file summary as ground truth
+        const structuredChatPrompt = `
+            You are talking to the user about their uploaded asset named "${document.fileName}".
+            
+            Use the following analytical summary background data as your strict source of truth to answer the user's question:
+            ---
+            ${document.summary}
+            ---
+            
+            User's Question: "${question}"
+            
+            Provide a clean, precise, and objective response directly addressing their question using easy-to-read Markdown syntax. If the answer cannot be found or inferred from the summary text above, politely inform the user that the background context doesn't contain that specific detail.
+        `;
+
+        // 3. Call Gemini to synthesize the precise turn answer
+        const chatResponse = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: [{ role: 'user', parts: [{ text: structuredChatPrompt }] }]
+        });
+
+        const generatedAnswer = chatResponse.text || "AI Core was unable to compile a distinct answer branch.";
+
+        // 4. Return the answer string back to the user interface
+        res.status(200).json({ answer: generatedAnswer });
+
+    } catch (error) {
+        console.error("❌ Contextual Chat Engine Failure:", error.message);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // Activate the network listening ring
 app.listen(PORT, () => {
     console.log(`⚡ Amber Insight Console active on: http://localhost:${PORT}`);
