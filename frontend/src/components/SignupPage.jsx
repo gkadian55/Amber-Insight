@@ -32,7 +32,6 @@ const SignupPage = () => {
             }
 
             // 🟢 FIXED: Swap raw localStorage setItem commands for the context engine.
-            // This syncs memory structures and triggers layout mutations instantly.
             login(data.user, data.token);
 
             // Redirect straight back to dashboard landing pad
@@ -46,6 +45,14 @@ const SignupPage = () => {
 
     return (
         <div style={styles.container}>
+
+            {/* ⬅️ SLEEK INLINE BACK BUTTON */}
+            <div style={styles.backNavContainer}>
+                <button onClick={() => navigate('/')} style={styles.inlineBackButton}>
+                    ← Back to Home
+                </button>
+            </div>
+
             <div style={styles.card}>
                 <h1 style={styles.brand}>AMBER INSIGHT</h1>
                 <h2 style={styles.subtitle}>Create your analytical profile</h2>
@@ -110,12 +117,32 @@ const SignupPage = () => {
 const styles = {
     container: {
         display: 'flex',
+        flexDirection: 'column', // Changed to column to handle back button stacking cleanly
         justifyContent: 'center',
         alignItems: 'center',
         width: '100vw',
         height: '100vh',
         backgroundColor: '#0d0e12',
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    },
+    backNavContainer: {
+        width: '100%',
+        maxWidth: '420px', // Matches your card's width for absolute structural symmetry
+        display: 'flex',
+        justifyContent: 'flex-start',
+        marginBottom: '12px',
+        padding: '0 4px',
+        boxSizing: 'border-box'
+    },
+    inlineBackButton: {
+        background: 'none',
+        border: 'none',
+        color: '#94a3b8',
+        fontSize: '14px',
+        fontWeight: '600',
+        cursor: 'pointer',
+        padding: '6px 0',
+        transition: 'color 0.2s ease',
     },
     card: {
         width: '100%',
@@ -126,6 +153,7 @@ const styles = {
         boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)',
         textAlign: 'center',
         border: '1px solid #242736',
+        boxSizing: 'border-box'
     },
     brand: {
         fontSize: '24px',

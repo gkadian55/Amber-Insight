@@ -32,7 +32,6 @@ const LoginPage = () => {
             }
 
             // 🟢 FIXED: Fire the global auth context login handler. 
-            // This sets state and handles localStorage synchronization under the hood.
             login(data.user, data.token);
 
             navigate('/');
@@ -45,6 +44,14 @@ const LoginPage = () => {
 
     return (
         <div style={styles.container}>
+
+            {/* ⬅️ SLEEK INLINE BACK BUTTON */}
+            <div style={styles.backNavContainer}>
+                <button onClick={() => navigate('/')} style={styles.inlineBackButton}>
+                    ← Back to Home
+                </button>
+            </div>
+
             <div style={styles.card}>
                 <h1 style={styles.brand}>AMBER INSIGHT</h1>
                 <h2 style={styles.subtitle}>Log into your ecosystem</h2>
@@ -95,12 +102,32 @@ const LoginPage = () => {
 const styles = {
     container: {
         display: 'flex',
+        flexDirection: 'column', // Stack navigation container over the form card
         justifyContent: 'center',
         alignItems: 'center',
         width: '100vw',
         height: '100vh',
         backgroundColor: '#0d0e12',
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    },
+    backNavContainer: {
+        width: '100%',
+        maxWidth: '420px', // Exact symmetry match with your login card width
+        display: 'flex',
+        justifyContent: 'flex-start',
+        marginBottom: '12px',
+        padding: '0 4px',
+        boxSizing: 'border-box'
+    },
+    inlineBackButton: {
+        background: 'none',
+        border: 'none',
+        color: '#94a3b8',
+        fontSize: '14px',
+        fontWeight: '600',
+        cursor: 'pointer',
+        padding: '6px 0',
+        transition: 'color 0.2s ease',
     },
     card: {
         width: '100%',
@@ -111,6 +138,7 @@ const styles = {
         boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)',
         textAlign: 'center',
         border: '1px solid #242736',
+        boxSizing: 'border-box'
     },
     brand: {
         fontSize: '24px',
