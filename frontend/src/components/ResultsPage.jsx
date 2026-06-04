@@ -12,6 +12,9 @@ const ResultsPage = () => {
     const [documentData, setDocumentData] = useState(null);
     const [error, setError] = useState('');
 
+    // 🟢 New State: Clipboard Feedback
+    const [copied, setCopied] = useState(false);
+
     // Conversational Q&A States
     const [messages, setMessages] = useState([]);
     const [userInput, setUserInput] = useState('');
@@ -24,7 +27,6 @@ const ResultsPage = () => {
                 const response = await axios.get(`http://localhost:5000/api/documents/${id}`);
                 if (response.data) {
                     setDocumentData(response.data);
-                    // Seed the conversation with a welcome message from the engine
                     setMessages([
                         {
                             sender: 'ai',
@@ -43,33 +45,35 @@ const ResultsPage = () => {
         if (id) fetchDocumentAnalysis();
     }, [id]);
 
-    // Auto-scroll chat to latest message bubble
     useEffect(() => {
         chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
 
-    // Core Chat Submission Handler
+    // 🟢 New Logic: Clipboard Handler
+    const handleCopy = () => {
+        if (!documentData?.summary) return;
+        navigator.clipboard.writeText(documentData.summary);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+
     const handleSendMessage = async (textToSend) => {
         const query = textToSend || userInput;
         if (!query.trim() || isChatLoading) return;
 
-        // Push user message directly into UI thread
         const updatedMessages = [...messages, { sender: 'user', text: query }];
         setMessages(updatedMessages);
-        if (!textToSend) setUserInput(''); // Clear input box if typed manually
+        if (!textToSend) setUserInput('');
         setIsChatLoading(true);
 
         try {
-            // Securely grab the authorization token from LocalStorage
             const token = localStorage.getItem('token');
             const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
 
-            // POST query straight to our upcoming interactive backend gateway
             const response = await axios.post(`http://localhost:5000/api/documents/${id}/chat`, {
                 question: query
             }, config);
 
-            // Append AI's targeted answer stream
             setMessages([...updatedMessages, { sender: 'ai', text: response.data.answer }]);
         } catch (err) {
             console.error('Chat Session Error:', err);
@@ -97,7 +101,6 @@ const ResultsPage = () => {
 
     return (
         <div style={styles.panoramicWrapper}>
-            {/* Upper Action/Navigation Dock */}
             <div style={styles.actionBar}>
                 <button onClick={() => navigate('/')} style={styles.backButton}>
                     ← Ingest Another Asset
@@ -105,7 +108,6 @@ const ResultsPage = () => {
                 <div style={styles.pageTitleHeader}>Analysis Intelligence Deck</div>
             </div>
 
-            {/* Document Target Information Bar */}
             <div style={styles.metaHeader}>
                 <span style={styles.metaBadge}>📍 Active System Core Target: {documentData.fileName}</span>
                 <a href={documentData.fileUrl} target="_blank" rel="noreferrer" style={styles.downloadLink}>
@@ -113,21 +115,35 @@ const ResultsPage = () => {
                 </a>
             </div>
 
-            {/* 64/36 Panoramic Grid Layout */}
             <div style={styles.paneContainer}>
 
-                {/* LEFT PANEL (64% width): Solid Analytical Core */}
+                {/* LEFT PANEL: Solid Analytical Core */}
                 <div style={styles.summaryPane}>
+                    {/* 🟢 NEW: Pane Header with Copy Button */}
+                    <div style={styles.paneHeader}>
+                        <h3 style={styles.paneTitle}>Core Analysis</h3>
+                        <button
+                            onClick={handleCopy}
+                            style={{
+                                ...styles.copyButton,
+                                borderColor: copied ? '#ffb300' : '#cbd5e1',
+                                color: copied ? '#ffb300' : '#64748b',
+                                backgroundColor: copied ? 'rgba(255, 179, 0, 0.05)' : '#ffffff'
+                            }}
+                        >
+                            {copied ? '✓ Copied to Clipboard' : '📋 Copy Summary'}
+                        </button>
+                    </div>
+
                     <div style={styles.markdownContent}>
                         <ReactMarkdown>{documentData.summary}</ReactMarkdown>
                     </div>
                 </div>
 
-                {/* RIGHT PANEL (36% width): Dynamic Q&A Interactive Console */}
+                {/* RIGHT PANEL: Dynamic Q&A Interactive Console */}
                 <div style={styles.chatPane}>
                     <h3 style={styles.chatTitle}>💬 Document Intelligence Chat</h3>
 
-                    {/* Message Bubble Field */}
                     <div style={styles.chatMessageWindow}>
                         {messages.map((msg, index) => (
                             <div
@@ -155,17 +171,6 @@ const ResultsPage = () => {
                         <div ref={chatEndRef} />
                     </div>
 
-                    {/* Context Suggestion Pills */}
-                    <div style={styles.pillsContainer}>
-                        <button onClick={() => handleSendMessage("Extract key action items and deadlines")} style={styles.pillButton} disabled={isChatLoading}>
-                            📋 Action Items
-                        </button>
-                        <button onClick={() => handleSendMessage("Are there any suspicious figures or hidden costs?")} style={styles.pillButton} disabled={isChatLoading}>
-                            🔍 Audit Data
-                        </button>
-                    </div>
-
-                    {/* Input Entry Console */}
                     <form
                         onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }}
                         style={styles.chatInputForm}
@@ -193,7 +198,6 @@ const ResultsPage = () => {
     );
 };
 
-// Custom Stylesheet Architecture
 const styles = {
     panoramicWrapper: { width: '100%', minHeight: '100vh', padding: '30px 40px', fontFamily: 'system-ui, sans-serif', boxSizing: 'border-box', backgroundColor: '#0f172a' },
     loadingDisplay: { textAlign: 'center', padding: '100px', color: '#64748b', fontSize: '18px', fontWeight: '600' },
@@ -206,7 +210,6 @@ const styles = {
     metaBadge: { fontWeight: '600' },
     downloadLink: { color: '#38bdf8', textDecoration: 'none', fontWeight: '600' },
 
-    // 🟢 CRITICAL: Pure 64% / 36% Grid Split Framework
     paneContainer: {
         display: 'grid',
         gridTemplateColumns: '70fr 30fr',
@@ -216,17 +219,20 @@ const styles = {
         boxSizing: 'border-box'
     },
     summaryPane: { backgroundColor: '#ffffff', borderRadius: '14px', padding: '35px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', boxSizing: 'border-box', height: 'fit-content' },
+
+    // 🟢 NEW: Header layout for the summary pane
+    paneHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid #f1f5f9', paddingBottom: '15px' },
+    paneTitle: { margin: 0, fontSize: '18px', color: '#0f172a', fontWeight: '700' },
+    copyButton: { padding: '8px 16px', borderRadius: '6px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', border: '1px solid', transition: 'all 0.2s ease' },
+
     markdownContent: { color: '#334155', fontSize: '16px', lineHeight: '1.7' },
 
-    // Interactive Chat UI Styles
     chatPane: { backgroundColor: '#ffffff', borderRadius: '14px', padding: '25px', display: 'flex', flexDirection: 'column', height: '600px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', boxSizing: 'border-box' },
     chatTitle: { margin: '0 0 16px 0', fontSize: '18px', color: '#0f172a', fontWeight: '700', borderBottom: '2px solid #f1f5f9', paddingBottom: '10px' },
     chatMessageWindow: { flex: 1, overflowY: 'auto', paddingRight: '5px', display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '15px' },
     messageRow: { display: 'flex', width: '100%' },
     messageBubble: { padding: '12px 16px', maxWidth: '85%', fontSize: '15px', lineHeight: '1.5', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' },
     chatSystemNotice: { color: '#64748b', fontSize: '13px', fontStyle: 'italic', paddingLeft: '5px' },
-    pillsContainer: { display: 'flex', gap: '8px', marginBottom: '12px', flexWrap: 'wrap' },
-    pillButton: { backgroundColor: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: '20px', padding: '6px 14px', fontSize: '13px', fontWeight: '600', color: '#475569', cursor: 'pointer', transition: 'all 0.2s' },
     chatInputForm: { display: 'flex', gap: '10px', width: '100%' },
     chatInputField: { flex: 1, border: '1px solid #cbd5e1', borderRadius: '8px', padding: '12px 16px', fontSize: '14px', outline: 'none' },
     chatSendButton: { backgroundColor: '#0f172a', color: '#ffffff', border: 'none', borderRadius: '8px', padding: '0 20px', fontWeight: '600', cursor: 'pointer' }
