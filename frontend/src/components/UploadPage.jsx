@@ -64,7 +64,7 @@ const UploadPage = () => {
             {isAuthenticated && (
                 <div style={styles.sidebar}>
                     <h3 style={styles.sidebarTitle}>Analysis Archives</h3>
-                    <div style={styles.historyList}>
+                    <div style={styles.historyList} className="no-scrollbar">
                         {history.length === 0 ? (
                             <p style={styles.emptyText}>No previous scans logged yet.</p>
                         ) : (
@@ -88,7 +88,7 @@ const UploadPage = () => {
                 <div style={styles.authBanner}>
                     {isAuthenticated ? (
                         <>
-                            <span style={styles.welcomeMessage}>⚡ Active Space: <strong>{user?.name}</strong></span>
+                            <span style={styles.welcomeMessage}>⚡ Active Space: <strong style={{ color: '#ffb300', fontWeight: '800' }}>{user?.name}</strong></span>
                             <button onClick={logout} style={styles.secondaryBtn}>Log Out</button>
                         </>
                     ) : (
@@ -134,42 +134,42 @@ const styles = {
         overflow: 'hidden'
     },
     sidebar: {
-        width: '300px',
+        width: '320px',
         height: '100%',
         backgroundColor: '#161822',
         borderRight: '1px solid #242736',
-        padding: '24px',
+        padding: '28px',
         boxSizing: 'border-box',
         display: 'flex',
         flexDirection: 'column'
     },
     sidebarTitle: {
-        fontSize: '14px',
-        fontWeight: '700',
+        fontSize: '20px',
+        fontWeight: '800',
         textTransform: 'uppercase',
-        letterSpacing: '1px',
-        color: '#94a3b8',
-        marginBottom: '20px'
+        letterSpacing: '1.5px',
+        color: '#ffffff',
+        marginBottom: '24px'
     },
     historyList: {
         flex: 1,
         overflowY: 'auto'
     },
     historyItem: {
-        padding: '12px',
+        padding: '14px 16px',
         backgroundColor: '#0d0e12',
         border: '1px solid #242736',
-        borderRadius: '6px',
-        marginBottom: '10px',
+        borderRadius: '8px',
+        marginBottom: '12px',
         cursor: 'pointer',
-        fontSize: '14px',
+        fontSize: '16px',
         color: '#e2e8f0',
         transition: 'all 0.2s ease',
         whiteSpace: 'nowrap',
         overflow: 'hidden',
         textOverflow: 'ellipsis'
     },
-    emptyText: { color: '#64748b', fontSize: '14px' },
+    emptyText: { color: '#64748b', fontSize: '16px' },
     mainContent: {
         flex: 1,
         display: 'flex',
@@ -179,13 +179,13 @@ const styles = {
     authBanner: {
         display: 'flex',
         alignItems: 'center',
-        padding: '16px 40px',
+        padding: '20px 40px',
         borderBottom: '1px solid #242736',
         backgroundColor: '#161822',
         justifyContent: 'space-between'
     },
-    guestNotice: { color: '#94a3b8', fontSize: '14px' },
-    welcomeMessage: { color: '#ffb300', fontSize: '14px' },
+    guestNotice: { color: '#cbd5e1', fontSize: '20px', fontWeight: '500' },
+    welcomeMessage: { color: '#ffffff', fontSize: '20px', fontWeight: '500' },
     authBtn: {
         backgroundColor: 'transparent',
         border: 'none',
@@ -193,26 +193,26 @@ const styles = {
         marginRight: '15px',
         cursor: 'pointer',
         fontWeight: '600',
-        fontSize: '14px'
+        fontSize: '16px'
     },
     authBtnPrimary: {
         backgroundColor: '#ffb300',
         border: 'none',
         color: '#0d0e12',
-        padding: '8px 16px',
-        borderRadius: '4px',
+        padding: '10px 20px',
+        borderRadius: '6px',
         cursor: 'pointer',
         fontWeight: '700',
-        fontSize: '14px'
+        fontSize: '16px'
     },
     secondaryBtn: {
         backgroundColor: 'rgba(239, 68, 68, 0.1)',
         border: '1px solid #ef4444',
         color: '#ef4444',
-        padding: '6px 12px',
-        borderRadius: '4px',
+        padding: '8px 16px',
+        borderRadius: '6px',
         cursor: 'pointer',
-        fontSize: '13px'
+        fontSize: '15px'
     },
     uploaderCenter: {
         flex: 1,
@@ -222,34 +222,35 @@ const styles = {
         alignItems: 'center',
         padding: '40px'
     },
-    titleHead: { fontSize: '32px', fontWeight: '800', letterSpacing: '3px', color: '#ffb300', margin: '0 0 8px 0' },
-    tagline: { color: '#94a3b8', fontSize: '15px', margin: '0 0 40px 0', textAlign: 'center' },
-    uploadForm: { width: '100%', maxWidth: '500px', display: 'flex', flexDirection: 'column', alignItems: 'center' },
+    titleHead: { fontSize: '38px', fontWeight: '800', letterSpacing: '3px', color: '#ffb300', margin: '0 0 10px 0' },
+    tagline: { color: '#94a3b8', fontSize: '17px', margin: '0 0 45px 0', textAlign: 'center' },
+    uploadForm: { width: '100%', maxWidth: '550px', display: 'flex', flexDirection: 'column', alignItems: 'center' },
     fileInput: { display: 'none' },
     dropZone: {
         width: '100%',
-        height: '180px',
+        height: '220px',
         border: '2px dashed #242736',
-        borderRadius: '8px',
+        borderRadius: '12px',
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
         color: '#94a3b8',
         cursor: 'pointer',
         boxSizing: 'border-box',
-        padding: '20px',
+        padding: '24px',
         textAlign: 'center',
-        marginBottom: '24px'
+        marginBottom: '28px',
+        fontSize: '17px'
     },
     submitBtn: {
         width: '100%',
-        padding: '14px',
+        padding: '16px',
         backgroundColor: '#ffb300',
         color: '#0d0e12',
         border: 'none',
         borderRadius: '6px',
         fontWeight: '700',
-        fontSize: '16px',
+        fontSize: '18px',
         cursor: 'pointer'
     }
 };

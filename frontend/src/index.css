@@ -18,3 +18,12 @@ body,
 *:after {
     box-sizing: inherit;
 }
+
+/* Hide scrollbars but keep scrolling active */
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.no-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
