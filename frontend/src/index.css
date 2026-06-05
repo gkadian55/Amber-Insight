@@ -9,8 +9,8 @@ body,
     background-color: #0f172a;
     /* Deep slate background matching your deck */
     box-sizing: border-box;
-    overflow-x: hidden;
-    /* Prevent horizontal layout breaking */
+    overflow-x: clip;
+    /* Prevent horizontal layout breaking without disabling sticky positioning */
 }
 
 *,

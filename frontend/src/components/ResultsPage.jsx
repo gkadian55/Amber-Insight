@@ -6,13 +6,13 @@ import ReactMarkdown from 'react-markdown';
 const ResultsPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const chatEndRef = useRef(null);
+    const chatContainerRef = useRef(null);
 
     // Core Data States
     const [documentData, setDocumentData] = useState(null);
     const [error, setError] = useState('');
 
-    // 🟢 New State: Clipboard Feedback
+    // Clipboard Feedback State
     const [copied, setCopied] = useState(false);
 
     // Conversational Q&A States
@@ -46,10 +46,15 @@ const ResultsPage = () => {
     }, [id]);
 
     useEffect(() => {
-        chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        if (chatContainerRef.current) {
+            chatContainerRef.current.scrollTo({
+                top: chatContainerRef.current.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
     }, [messages]);
 
-    // 🟢 New Logic: Clipboard Handler
+    // Clipboard Handler
     const handleCopy = () => {
         if (!documentData?.summary) return;
         navigator.clipboard.writeText(documentData.summary);
@@ -87,8 +92,8 @@ const ResultsPage = () => {
         return (
             <div style={styles.errorContainer}>
                 <div style={styles.errorCard}>
-                    <h3>⚠️ Data Sync Anomaly</h3>
-                    <p>{error}</p>
+                    <h3 style={{ color: '#ef4444', margin: '0 0 10px 0' }}>⚠️ Data Sync Anomaly</h3>
+                    <p style={{ color: '#94a3b8', margin: '0 0 20px 0' }}>{error}</p>
                     <button onClick={() => navigate('/')} style={styles.backButton}>Return to Home Base</button>
                 </div>
             </div>
@@ -101,15 +106,17 @@ const ResultsPage = () => {
 
     return (
         <div style={styles.panoramicWrapper}>
+            {/* Upper Action/Navigation Dock */}
             <div style={styles.actionBar}>
                 <button onClick={() => navigate('/')} style={styles.backButton}>
-                    ← Ingest Another Asset
+                    ← Console Dashboard
                 </button>
-                <div style={styles.pageTitleHeader}>Analysis Intelligence Deck</div>
+                <div style={styles.pageTitleHeader}>Amber Insight Console</div>
             </div>
 
+            {/* Document Target Information Bar */}
             <div style={styles.metaHeader}>
-                <span style={styles.metaBadge}>📍 Active System Core Target: {documentData.fileName}</span>
+                <span style={styles.metaBadge}>📍 Active Core Target: {documentData.fileName}</span>
                 <a href={documentData.fileUrl} target="_blank" rel="noreferrer" style={styles.downloadLink}>
                     View Source Asset ↗
                 </a>
@@ -117,21 +124,20 @@ const ResultsPage = () => {
 
             <div style={styles.paneContainer}>
 
-                {/* LEFT PANEL: Solid Analytical Core */}
+                {/* LEFT PANEL (70% width): Premium Markdown Core */}
                 <div style={styles.summaryPane}>
-                    {/* 🟢 NEW: Pane Header with Copy Button */}
                     <div style={styles.paneHeader}>
                         <h3 style={styles.paneTitle}>Core Analysis</h3>
                         <button
                             onClick={handleCopy}
                             style={{
                                 ...styles.copyButton,
-                                borderColor: copied ? '#ffb300' : '#cbd5e1',
-                                color: copied ? '#ffb300' : '#64748b',
-                                backgroundColor: copied ? 'rgba(255, 179, 0, 0.05)' : '#ffffff'
+                                borderColor: copied ? '#ffb300' : '#242736',
+                                color: copied ? '#ffb300' : '#94a3b8',
+                                backgroundColor: copied ? 'rgba(255, 179, 0, 0.05)' : '#1e293b'
                             }}
                         >
-                            {copied ? '✓ Copied to Clipboard' : '📋 Copy Summary'}
+                            {copied ? '✓ Copied' : '📋 Copy Summary'}
                         </button>
                     </div>
 
@@ -140,11 +146,12 @@ const ResultsPage = () => {
                     </div>
                 </div>
 
-                {/* RIGHT PANEL: Dynamic Q&A Interactive Console */}
+                {/* RIGHT PANEL (30% width): Tactical Chat Engine */}
                 <div style={styles.chatPane}>
-                    <h3 style={styles.chatTitle}>💬 Document Intelligence Chat</h3>
+                    <h3 style={styles.chatTitle}>💬 Ask Amber</h3>
 
-                    <div style={styles.chatMessageWindow}>
+                    {/* Message Bubble Field */}
+                    <div ref={chatContainerRef} style={styles.chatMessageWindow}>
                         {messages.map((msg, index) => (
                             <div
                                 key={index}
@@ -155,9 +162,9 @@ const ResultsPage = () => {
                             >
                                 <div style={{
                                     ...styles.messageBubble,
-                                    backgroundColor: msg.sender === 'user' ? '#2563eb' : '#f1f5f9',
-                                    color: msg.sender === 'user' ? '#ffffff' : '#1e293b',
-                                    borderRadius: msg.sender === 'user' ? '14px 14px 2px 14px' : '14px 14px 14px 2px'
+                                    backgroundColor: msg.sender === 'user' ? '#ffb300' : '#242736',
+                                    color: msg.sender === 'user' ? '#0d0e12' : '#ffffff',
+                                    borderRadius: msg.sender === 'user' ? '12px 12px 2px 12px' : '12px 12px 12px 2px'
                                 }}>
                                     <ReactMarkdown>{msg.text}</ReactMarkdown>
                                 </div>
@@ -165,12 +172,12 @@ const ResultsPage = () => {
                         ))}
                         {isChatLoading && (
                             <div style={styles.chatSystemNotice}>
-                                <span style={styles.pulseDot}>⚡</span> AI Core compiling response...
+                                <span style={{ color: '#ffb300' }}>⚡</span> Amber is thinking...
                             </div>
                         )}
-                        <div ref={chatEndRef} />
                     </div>
 
+                    {/* Input Entry Console */}
                     <form
                         onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }}
                         style={styles.chatInputForm}
@@ -179,7 +186,7 @@ const ResultsPage = () => {
                             type="text"
                             value={userInput}
                             onChange={(e) => setUserInput(e.target.value)}
-                            placeholder="Ask a question about this asset..."
+                            placeholder="Ask a clarifying question..."
                             style={styles.chatInputField}
                             disabled={isChatLoading}
                         />
@@ -199,17 +206,18 @@ const ResultsPage = () => {
 };
 
 const styles = {
-    panoramicWrapper: { width: '100%', minHeight: '100vh', padding: '30px 40px', fontFamily: 'system-ui, sans-serif', boxSizing: 'border-box', backgroundColor: '#0f172a' },
-    loadingDisplay: { textAlign: 'center', padding: '100px', color: '#64748b', fontSize: '18px', fontWeight: '600' },
-    errorContainer: { display: 'flex', justifyContent: 'center', marginTop: '100px' },
-    errorCard: { backgroundColor: '#ffffff', padding: '30px', borderRadius: '12px', textAlign: 'center', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' },
-    actionBar: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid #334155', paddingBottom: '14px', width: '100%' },
-    backButton: { backgroundColor: '#ffffff', border: '1px solid #cbd5e1', padding: '10px 20px', borderRadius: '6px', fontSize: '14px', fontWeight: '600', color: '#334155', cursor: 'pointer' },
-    pageTitleHeader: { fontSize: '22px', fontWeight: '700', color: '#f8fafc' },
-    metaHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#1e293b', padding: '18px 24px', borderRadius: '10px', color: '#f8fafc', fontSize: '14px', marginBottom: '30px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', width: '100%', boxSizing: 'border-box' },
-    metaBadge: { fontWeight: '600' },
-    downloadLink: { color: '#38bdf8', textDecoration: 'none', fontWeight: '600' },
+    panoramicWrapper: { width: '100%', minHeight: '100vh', padding: '30px 40px', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', boxSizing: 'border-box', backgroundColor: '#0d0e12' },
+    loadingDisplay: { textAlign: 'center', padding: '100px', color: '#ffb300', backgroundColor: '#0d0e12', minHeight: '100vh', fontSize: '18px', fontWeight: '600', letterSpacing: '1px' },
+    errorContainer: { display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', backgroundColor: '#0d0e12' },
+    errorCard: { backgroundColor: '#161822', padding: '30px', borderRadius: '12px', textAlign: 'center', border: '1px solid #ef4444', boxShadow: '0 8px 24px rgba(0,0,0,0.4)', maxWidth: '400px' },
+    actionBar: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid #242736', paddingBottom: '14px', width: '100%' },
+    backButton: { backgroundColor: '#161822', border: '1px solid #242736', padding: '10px 18px', borderRadius: '6px', fontSize: '14px', fontWeight: '600', color: '#94a3b8', cursor: 'pointer', transition: 'all 0.2s ease' },
+    pageTitleHeader: { fontSize: '20px', fontWeight: '800', color: '#ffb300', letterSpacing: '1px', textTransform: 'uppercase' },
+    metaHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#161822', padding: '16px 24px', borderRadius: '10px', color: '#ffffff', fontSize: '14px', marginBottom: '30px', border: '1px solid #242736', width: '100%', boxSizing: 'border-box' },
+    metaBadge: { fontWeight: '600', color: '#cbd5e1' },
+    downloadLink: { color: '#ffb300', textDecoration: 'none', fontWeight: '600' },
 
+    // 🟢 Dynamic Grid Engine
     paneContainer: {
         display: 'grid',
         gridTemplateColumns: '70fr 30fr',
@@ -218,24 +226,24 @@ const styles = {
         width: '100%',
         boxSizing: 'border-box'
     },
-    summaryPane: { backgroundColor: '#ffffff', borderRadius: '14px', padding: '35px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', boxSizing: 'border-box', height: 'fit-content' },
 
-    // 🟢 NEW: Header layout for the summary pane
-    paneHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid #f1f5f9', paddingBottom: '15px' },
-    paneTitle: { margin: 0, fontSize: '18px', color: '#0f172a', fontWeight: '700' },
-    copyButton: { padding: '8px 16px', borderRadius: '6px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', border: '1px solid', transition: 'all 0.2s ease' },
+    // Left Summary Pane Structure
+    summaryPane: { backgroundColor: '#161822', borderRadius: '12px', padding: '35px', border: '1px solid #242736', boxShadow: '0 4px 20px rgba(0,0,0,0.2)', boxSizing: 'border-box', height: 'fit-content' },
+    paneHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid #242736', paddingBottom: '15px' },
+    paneTitle: { margin: 0, fontSize: '18px', color: '#ffffff', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' },
+    copyButton: { padding: '8px 14px', borderRadius: '6px', fontSize: '12px', fontWeight: '700', cursor: 'pointer', border: '1px solid', transition: 'all 0.2s ease' },
+    markdownContent: { color: '#cbd5e1', fontSize: '15px', lineHeight: '1.7' },
 
-    markdownContent: { color: '#334155', fontSize: '16px', lineHeight: '1.7' },
-
-    chatPane: { backgroundColor: '#ffffff', borderRadius: '14px', padding: '25px', display: 'flex', flexDirection: 'column', height: '600px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', boxSizing: 'border-box' },
-    chatTitle: { margin: '0 0 16px 0', fontSize: '18px', color: '#0f172a', fontWeight: '700', borderBottom: '2px solid #f1f5f9', paddingBottom: '10px' },
+    // Right Companion Pane Structure
+    chatPane: { backgroundColor: '#161822', borderRadius: '12px', padding: '25px', display: 'flex', flexDirection: 'column', height: '650px', border: '1px solid #242736', boxShadow: '0 4px 20px rgba(0,0,0,0.2)', boxSizing: 'border-box', position: 'sticky', top: '24px', alignSelf: 'start' },
+    chatTitle: { margin: '0 0 16px 0', fontSize: '16px', color: '#ffffff', fontWeight: '700', textTransform: 'uppercase', borderBottom: '1px solid #242736', paddingBottom: '12px', letterSpacing: '0.5px' },
     chatMessageWindow: { flex: 1, overflowY: 'auto', paddingRight: '5px', display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '15px' },
     messageRow: { display: 'flex', width: '100%' },
-    messageBubble: { padding: '12px 16px', maxWidth: '85%', fontSize: '15px', lineHeight: '1.5', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' },
-    chatSystemNotice: { color: '#64748b', fontSize: '13px', fontStyle: 'italic', paddingLeft: '5px' },
+    messageBubble: { padding: '12px 16px', maxWidth: '85%', fontSize: '14px', lineHeight: '1.5', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' },
+    chatSystemNotice: { color: '#94a3b8', fontSize: '13px', fontStyle: 'italic', paddingLeft: '5px' },
     chatInputForm: { display: 'flex', gap: '10px', width: '100%' },
-    chatInputField: { flex: 1, border: '1px solid #cbd5e1', borderRadius: '8px', padding: '12px 16px', fontSize: '14px', outline: 'none' },
-    chatSendButton: { backgroundColor: '#0f172a', color: '#ffffff', border: 'none', borderRadius: '8px', padding: '0 20px', fontWeight: '600', cursor: 'pointer' }
+    chatInputField: { flex: 1, backgroundColor: '#0d0e12', border: '1px solid #242736', borderRadius: '8px', padding: '12px 16px', fontSize: '14px', color: '#ffffff', outline: 'none', transition: 'border-color 0.2s ease' },
+    chatSendButton: { backgroundColor: '#ffb300', color: '#0d0e12', border: 'none', borderRadius: '8px', padding: '0 20px', fontWeight: '700', fontSize: '14px', cursor: 'pointer', transition: 'background-color 0.2s ease' }
 };
 
 export default ResultsPage;
