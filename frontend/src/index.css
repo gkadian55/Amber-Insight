@@ -11,22 +11,25 @@
   --amber-dark: #cc5200;
   --amber-primary-grad: linear-gradient(135deg, #ff9e22 0%, #ff5c00 100%);
   --amber-glow-grad: linear-gradient(135deg, rgba(255, 158, 34, 0.15) 0%, rgba(255, 92, 0, 0.15) 100%);
-  
+
   /* Landing / Dashboard Colors */
   --color-bg-landing: #fffcf8;
   --color-bg-dashboard: #ffffff;
   --color-bg-sidebar: #fbf9f6;
   --color-bg-card: #ffffff;
-  
+
   --color-text-dark: #221c1a;
   --color-text-muted: #736965;
-  --color-text-purple: #46344e; /* Dark theme text matching chat elements */
-  --color-bg-purple: #f5f0f6;   /* Chat message user color */
-  --color-bg-cit-orange: #fff6eb; /* Topic / Citation bg */
-  
+  --color-text-purple: #46344e;
+  /* Dark theme text matching chat elements */
+  --color-bg-purple: #f5f0f6;
+  /* Chat message user color */
+  --color-bg-cit-orange: #fff6eb;
+  /* Topic / Citation bg */
+
   --color-border: #f0e9e1;
   --color-border-hover: #ffd9bd;
-  
+
   /* System Icons Colors */
   --color-pdf: #e11d48;
   --color-docx: #2563eb;
@@ -67,13 +70,16 @@ body,
   width: 6px;
   height: 6px;
 }
+
 ::-webkit-scrollbar-track {
   background: transparent;
 }
+
 ::-webkit-scrollbar-thumb {
   background: #e2dacd;
   border-radius: 4px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: #cbd5e1;
 }
@@ -81,6 +87,7 @@ body,
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -91,9 +98,11 @@ body,
   0% {
     transform: translateY(0px) rotate(var(--rot, 0deg));
   }
+
   50% {
     transform: translateY(-8px) rotate(var(--rot, 0deg));
   }
+
   100% {
     transform: translateY(0px) rotate(var(--rot, 0deg));
   }
@@ -103,19 +112,24 @@ body,
   0% {
     transform: translateY(0px) rotate(var(--rot, 0deg));
   }
+
   50% {
     transform: translateY(8px) rotate(var(--rot, 0deg));
   }
+
   100% {
     transform: translateY(0px) rotate(var(--rot, 0deg));
   }
 }
 
 @keyframes pulseGlow {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 0.5;
     transform: scale(1);
   }
+
   50% {
     opacity: 0.7;
     transform: scale(1.08);
@@ -123,9 +137,12 @@ body,
 }
 
 @keyframes pulseFire {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: scale(1) translateY(0);
   }
+
   50% {
     transform: scale(1.05) translateY(-3px);
   }
@@ -244,11 +261,6 @@ body,
   transform: translateY(-2px);
 }
 
-
-/* ---------------------------------------------------- */
-/* 3-COLUMN WORKSPACE DASHBOARD SPECIFIC CLASSES       */
-/* ---------------------------------------------------- */
-
 .workspace-container {
   display: flex;
   width: 100vw;
@@ -347,7 +359,7 @@ body,
 .library-filter-tab.active {
   background-color: #ffffff;
   color: var(--color-text-dark);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 /* Document Item List */
@@ -799,11 +811,6 @@ body,
   color: var(--color-text-muted);
   margin-top: 8px;
 }
-
-
-/* ---------------------------------------------------- */
-/* AUTHENTICATION PAGES SPECIFIC CLASSES (GLASSMORPH)   */
-/* ---------------------------------------------------- */
 
 .auth-container {
   min-height: 100vh;
