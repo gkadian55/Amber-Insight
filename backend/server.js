@@ -34,6 +34,46 @@ app.get('/', (req, res) => {
     res.send("Amber Insight Server Core is Online.");
 });
 
+// Extract a clean human-readable error message from Gemini API errors
+function getCleanErrorMessage(error) {
+    try {
+        if (error.message && typeof error.message === 'string' && error.message.trim().startsWith('{')) {
+            const parsed = JSON.parse(error.message);
+            if (parsed.error && parsed.error.message) {
+                return parsed.error.message;
+            }
+        }
+    } catch (e) {
+        // Fallback to default message
+    }
+    return error.message || "An unexpected server error occurred.";
+}
+
+// Wrap Gemini API calls in a retry mechanism with exponential backoff for rate limits or transient errors (e.g. 503, 429)
+async function callGeminiWithRetry(apiCallFn, retries = 2, delay = 1000) {
+    for (let i = 0; i <= retries; i++) {
+        try {
+            return await apiCallFn();
+        } catch (error) {
+            const errorStr = error.message || "";
+            const isTransientError = 
+                errorStr.includes("503") || 
+                errorStr.includes("429") || 
+                errorStr.includes("UNAVAILABLE") ||
+                errorStr.includes("RESOURCE_EXHAUSTED") ||
+                errorStr.includes("high demand");
+                 
+            if (isTransientError && i < retries) {
+                console.warn(`⚠️ Gemini API experiencing temporary high demand/load. Retrying in ${delay}ms... (Attempt ${i + 1}/${retries})`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+                delay *= 2; // exponential backoff
+                continue;
+            }
+            throw error;
+        }
+    }
+}
+
 /**
  * @route   POST /api/documents/upload
  * @desc    Ingests an asset (PDF, PNG, JPG), binds user association if authorized, 
@@ -83,23 +123,25 @@ app.post('/api/documents/upload', optionalAuth, upload.single('file'), async (re
         - Do not invent, hallucinate, or extrapolate facts beyond what is explicitly stated or strongly implied by the structural data in the file.
         `;
 
-        const aiResponse = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: [
-                {
-                    role: 'user',
-                    parts: [
-                        { text: systemPrompt },
-                        {
-                            inlineData: {
-                                data: fileBuffer.toString("base64"),
-                                mimeType: mimeType
+        const aiResponse = await callGeminiWithRetry(() => 
+            ai.models.generateContent({
+                model: 'gemini-2.5-flash',
+                contents: [
+                    {
+                        role: 'user',
+                        parts: [
+                            { text: systemPrompt },
+                            {
+                                inlineData: {
+                                    data: fileBuffer.toString("base64"),
+                                    mimeType: mimeType
+                                }
                             }
-                        }
-                    ]
-                }
-            ]
-        });
+                        ]
+                    }
+                ]
+            })
+        );
 
         // Capture the generated text block from the payload return structure
         const aiAnalysisResult = aiResponse.text || "AI engine executed but returned a blank stream.";
@@ -138,8 +180,9 @@ app.post('/api/documents/upload', optionalAuth, upload.single('file'), async (re
         });
 
     } catch (error) {
-        console.error("❌ Multimodal Ingestion Pipeline Failure:", error.message);
-        res.status(500).json({ error: error.message });
+        const cleanMessage = getCleanErrorMessage(error);
+        console.error("❌ Multimodal Ingestion Pipeline Failure:", cleanMessage);
+        res.status(500).json({ error: cleanMessage });
     }
 });
 
@@ -213,10 +256,12 @@ app.post('/api/documents/:id/chat', optionalAuth, async (req, res) => {
         `;
 
         // 3. Call Gemini to synthesize the precise turn answer
-        const chatResponse = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: [{ role: 'user', parts: [{ text: structuredChatPrompt }] }]
-        });
+        const chatResponse = await callGeminiWithRetry(() =>
+            ai.models.generateContent({
+                model: 'gemini-2.5-flash',
+                contents: [{ role: 'user', parts: [{ text: structuredChatPrompt }] }]
+            })
+        );
 
         const generatedAnswer = chatResponse.text || "AI Core was unable to compile a distinct answer branch.";
 
@@ -224,8 +269,9 @@ app.post('/api/documents/:id/chat', optionalAuth, async (req, res) => {
         res.status(200).json({ answer: generatedAnswer });
 
     } catch (error) {
-        console.error("❌ Contextual Chat Engine Failure:", error.message);
-        res.status(500).json({ error: error.message });
+        const cleanMessage = getCleanErrorMessage(error);
+        console.error("❌ Contextual Chat Engine Failure:", cleanMessage);
+        res.status(500).json({ error: cleanMessage });
     }
 });
 

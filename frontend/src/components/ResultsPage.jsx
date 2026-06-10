@@ -24,6 +24,21 @@ const ResultsPage = () => {
     // Sidebar Filters
     const [searchQuery, setSearchQuery] = useState('');
 
+    // Toast state
+    const [toast, setToast] = useState({ show: false, message: '', type: 'error' });
+
+    const triggerToast = (message, type = 'error') => {
+        setToast({ show: true, message, type });
+    };
+
+    useEffect(() => {
+        if (!toast.show) return;
+        const timer = setTimeout(() => {
+            setToast(prev => ({ ...prev, show: false }));
+        }, 6000);
+        return () => clearTimeout(timer);
+    }, [toast.show, toast.message]);
+
     // Middle column Tab Pane State
     const [activeContentTab, setActiveContentTab] = useState('Summary');
 
@@ -36,8 +51,29 @@ const ResultsPage = () => {
     const fetchDocuments = async (activeIdToLoad) => {
         try {
             const token = localStorage.getItem('token');
-            const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+            const targetId = activeIdToLoad || id;
 
+            // GUEST MODE: No token - skip the list fetch entirely.
+            // Just load the single document by ID directly from the public endpoint.
+            if (!token) {
+                if (targetId && targetId !== 'list') {
+                    try {
+                        const docRes = await axios.get(`http://localhost:5000/api/documents/${targetId}`);
+                        if (docRes.data) {
+                            const guestDoc = { ...docRes.data, chatHistory: docRes.data.chatHistory || [] };
+                            setDocumentsList([guestDoc]);
+                            loadDocument(guestDoc);
+                        }
+                    } catch (singleDocErr) {
+                        console.error('Failed to load single document for guest:', singleDocErr);
+                    }
+                }
+                setLoading(false); // Must call before returning to avoid infinite loading spinner
+                return;
+            }
+
+            // LOGGED IN: Fetch the full user document list
+            const config = { headers: { Authorization: `Bearer ${token}` } };
             const response = await axios.get('http://localhost:5000/api/documents', config);
             const dbDocs = (response.data || []).map(doc => ({
                 ...doc,
@@ -46,9 +82,7 @@ const ResultsPage = () => {
 
             setDocumentsList(dbDocs);
 
-            const targetId = activeIdToLoad || id;
             let targetedDoc = null;
-
             if (targetId && targetId !== 'list') {
                 targetedDoc = dbDocs.find(doc => doc._id === targetId);
             }
@@ -159,9 +193,10 @@ const ResultsPage = () => {
             }]);
         } catch (err) {
             console.error('Chat failure:', err);
+            const errMsg = err.response?.data?.error || 'Unable to reach the Amber AI backend. Please check your connection and try again.';
             setMessages([...updatedMessages, {
                 sender: 'ai',
-                text: '⚠️ *Unable to reach the Amber AI backend. Please check your connection and try again.*'
+                text: `⚠️ *${errMsg}*`
             }]);
         } finally {
             setIsChatLoading(false);
@@ -195,11 +230,11 @@ const ResultsPage = () => {
                     await fetchDocuments(data.documentId);
                     navigate(`/results/${data.documentId}`);
                 } else {
-                    alert(data.error || "Failed to process the uploaded file.");
+                    triggerToast(data.error || "Failed to process the uploaded file.");
                 }
             } catch (err) {
                 console.error("Upload error:", err);
-                alert("Upload failed.");
+                triggerToast("Upload failed. Please check your connection and try again.");
             } finally {
                 setUploading(false);
             }
@@ -297,7 +332,7 @@ const ResultsPage = () => {
                         disabled={uploading}
                         style={styles.uploadBtn}
                     >
-                        {uploading ? "Analyzing Influx..." : "+ New upload"}
+                        {uploading ? "Analyzing..." : "+ New Upload"}
                     </button>
 
                     {/* Profile Panel */}
@@ -490,6 +525,28 @@ const ResultsPage = () => {
                     </form>
                 </div>
             </section>
+
+            {/* Premium Toast Notification System */}
+            {toast.show && (
+                <div className="toast-container">
+                    <div className={`toast-card ${toast.type}`}>
+                        <div className="toast-icon-box">
+                            {toast.type === 'error' && '⚠️'}
+                            {toast.type === 'warning' && '⚡'}
+                            {toast.type === 'success' && '✓'}
+                        </div>
+                        <div className="toast-content">
+                            <h4 className="toast-title">
+                                {toast.type === 'error' && 'System Error'}
+                                {toast.type === 'warning' && 'Warning'}
+                                {toast.type === 'success' && 'Success'}
+                            </h4>
+                            <p className="toast-message">{toast.message}</p>
+                        </div>
+                        <button className="toast-close-btn" onClick={() => setToast({ ...toast, show: false })}>✕</button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

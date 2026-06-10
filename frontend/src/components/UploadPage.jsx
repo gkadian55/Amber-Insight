@@ -11,6 +11,19 @@ const UploadPage = () => {
     const [dragActive, setDragActive] = useState(false);
     const [showSavedSidebar, setShowSavedSidebar] = useState(false);
     const [savedDocs, setSavedDocs] = useState([]);
+    const [toast, setToast] = useState({ show: false, message: '', type: 'error' });
+
+    const triggerToast = (message, type = 'error') => {
+        setToast({ show: true, message, type });
+    };
+
+    React.useEffect(() => {
+        if (!toast.show) return;
+        const timer = setTimeout(() => {
+            setToast(prev => ({ ...prev, show: false }));
+        }, 6000);
+        return () => clearTimeout(timer);
+    }, [toast.show, toast.message]);
 
     React.useEffect(() => {
         if (isAuthenticated) {
@@ -47,11 +60,11 @@ const UploadPage = () => {
             if (response.ok && data.documentId) {
                 navigate(`/results/${data.documentId}`);
             } else {
-                alert(data.error || "Failed to process the document.");
+                triggerToast(data.error || "Failed to process the document.");
             }
         } catch (err) {
             console.error("Upload error:", err);
-            alert("An error occurred during file upload. Please check your backend.");
+            triggerToast("An error occurred during file upload. Please check your backend.");
         } finally {
             setLoading(false);
         }
@@ -277,7 +290,7 @@ const UploadPage = () => {
                 </div>
             </main>
 
-            {/* Bottom Cards */}
+            {/* Feature Cards */}
             <section id="features" style={styles.featuresSection}>
                 <div style={styles.featuresGrid}>
 
@@ -320,9 +333,7 @@ const UploadPage = () => {
             {loading && (
                 <div style={styles.loadingOverlay}>
                     <div style={styles.loadingSpinnerWrap}>
-                        {/* Pulsing ring outer */}
                         <div style={styles.loadingRing} />
-                        {/* Animated Flame Icon in center */}
                         <svg className="animate-fire" width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M8.5 14.5A2.5 2.5 0 0011 12c0-1.38-.5-2-1.5-3-1 1-2 2.18-2 3.5a2.5 2.5 0 001 2z" fill="var(--amber-orange)" />
                             <path d="M17.66 9.53a9 9 0 01-5.66 11.13c-4.42 1.34-9.1-1.12-10.43-5.54A9 9 0 0110.15 3.32c.3-.09.61.1.61.41a6.6 6.6 0 001.32 3.91 3.5 3.5 0 012.75 1.57c.56.76.88 1.66.88 2.59 0 .23-.17.43-.4.43h-.01c-.24 0-.44-.2-.43-.44a3.1 3.1 0 00-.54-1.74A4.5 4.5 0 0011.66 8.5c-.32.06-.52-.3-.32-.57a7.02 7.02 0 013.9-2.73c.3-.08.57.17.47.46a5.55 5.55 0 002.95 3.87z" fill="var(--amber-orange)" />
@@ -399,6 +410,28 @@ const UploadPage = () => {
                                 );
                             })
                         )}
+                    </div>
+                </div>
+            )}
+
+            {/* Notification System */}
+            {toast.show && (
+                <div className="toast-container">
+                    <div className={`toast-card ${toast.type}`}>
+                        <div className="toast-icon-box">
+                            {toast.type === 'error' && '⚠️'}
+                            {toast.type === 'warning' && '⚡'}
+                            {toast.type === 'success' && '✓'}
+                        </div>
+                        <div className="toast-content">
+                            <h4 className="toast-title">
+                                {toast.type === 'error' && 'System Error'}
+                                {toast.type === 'warning' && 'Warning'}
+                                {toast.type === 'success' && 'Success'}
+                            </h4>
+                            <p className="toast-message">{toast.message}</p>
+                        </div>
+                        <button className="toast-close-btn" onClick={() => setToast({ ...toast, show: false })}>✕</button>
                     </div>
                 </div>
             )}
