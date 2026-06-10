@@ -17,7 +17,7 @@ const styles = {
         border: '4px solid #f0e9e1',
         borderTopColor: 'var(--amber-orange)',
         borderRadius: '50%',
-        animation: 'pulseGlow 1.5s infinite'
+        animation: 'spin 1s linear infinite'
     },
 
     loadingText: {

@@ -606,7 +606,7 @@ const styles = {
         border: '4px solid var(--color-border)',
         borderTopColor: 'var(--amber-orange)',
         borderRadius: '50%',
-        animation: 'pulseGlow 2s ease-in-out infinite'
+        animation: 'spin 1s linear infinite'
     },
 
     loadingTextWrap: {
