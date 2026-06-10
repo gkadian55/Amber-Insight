@@ -2,31 +2,31 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
-const { GoogleGenAI } = require('@google/genai'); // Modern Google Gen AI SDK
+const { GoogleGenAI } = require('@google/genai');
 const connectDB = require('./config/db');
 const upload = require('./middleware/upload');
 const Document = require('./models/Document');
-const { optionalAuth } = require('./middleware/auth'); // Import the new security layer
+const { optionalAuth } = require('./middleware/auth');
 
 require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Initialize database connection core
+// Initialize database connection
 connectDB();
 
-// Initialize the Google Gen AI core engine with our secured environment token
+// Initialize the Google Gen AI
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-// Core Middleware Pipeline
+// Middleware Pipeline
 app.use(cors());
 app.use(express.json());
 
-// Serve uploaded files statically so the frontend can reference them if needed
+// Uploaded files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Mount Authentication Routing Module (Handles /api/auth/signup and /api/auth/login)
+// Authentication Routing Module (Handles /api/auth/signup and /api/auth/login)
 app.use('/api/auth', require('./routes/authRoutes'));
 
 // Base Server Verification Route
@@ -34,7 +34,7 @@ app.get('/', (req, res) => {
     res.send("Amber Insight Server Core is Online.");
 });
 
-// Extract a clean human-readable error message from Gemini API errors
+// Extracting a clean human-readable error message from Gemini API errors
 function getCleanErrorMessage(error) {
     try {
         if (error.message && typeof error.message === 'string' && error.message.trim().startsWith('{')) {
@@ -49,20 +49,20 @@ function getCleanErrorMessage(error) {
     return error.message || "An unexpected server error occurred.";
 }
 
-// Wrap Gemini API calls in a retry mechanism with exponential backoff for rate limits or transient errors (e.g. 503, 429)
+// Safe-guarding Gemini API calls
 async function callGeminiWithRetry(apiCallFn, retries = 2, delay = 1000) {
     for (let i = 0; i <= retries; i++) {
         try {
             return await apiCallFn();
         } catch (error) {
             const errorStr = error.message || "";
-            const isTransientError = 
-                errorStr.includes("503") || 
-                errorStr.includes("429") || 
+            const isTransientError =
+                errorStr.includes("503") ||
+                errorStr.includes("429") ||
                 errorStr.includes("UNAVAILABLE") ||
                 errorStr.includes("RESOURCE_EXHAUSTED") ||
                 errorStr.includes("high demand");
-                 
+
             if (isTransientError && i < retries) {
                 console.warn(`⚠️ Gemini API experiencing temporary high demand/load. Retrying in ${delay}ms... (Attempt ${i + 1}/${retries})`);
                 await new Promise(resolve => setTimeout(resolve, delay));
@@ -101,7 +101,7 @@ app.post('/api/documents/upload', optionalAuth, upload.single('file'), async (re
         console.log(`🤖 Processing multi-format asset: "${req.file.filename}" [MIME: ${mimeType}]`);
         console.log(`🚀 Streaming asset data and system analytics core prompt to Gemini...`);
 
-        // 3. 🧠 MULTIMODAL DIRECT PASS CONTEXT PROCESSING
+        // 3. MULTIMODAL DIRECT PASS CONTEXT PROCESSING
         const systemPrompt = `
         You are the elite Core Analytical Engine of Amber Insight. Your objective is to perform a rigorous, expert-level document intelligence analysis on the attached asset: "${req.file.originalname}".
 
@@ -123,7 +123,7 @@ app.post('/api/documents/upload', optionalAuth, upload.single('file'), async (re
         - Do not invent, hallucinate, or extrapolate facts beyond what is explicitly stated or strongly implied by the structural data in the file.
         `;
 
-        const aiResponse = await callGeminiWithRetry(() => 
+        const aiResponse = await callGeminiWithRetry(() =>
             ai.models.generateContent({
                 model: 'gemini-2.5-flash',
                 contents: [
@@ -161,11 +161,11 @@ app.post('/api/documents/upload', optionalAuth, upload.single('file'), async (re
         // 5. Construct a new structural record inside our Mongoose schema
         const newDocument = new Document({
             fileName: req.file.originalname,
-            fileUrl: `http://localhost:${PORT}/uploads/${req.file.filename}`,
+            fileUrl: `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`,
             rawText: `[Asset Multi-Format Binary - Ingested via Native Gemini Multimodal Context Pipeline]`,
             summary: aiAnalysisResult,
             extractedInsights: processedInsights.length > 0 ? processedInsights : ["Analysis finalized successfully."],
-            // 🟢 AUTH HYDRATION: Connects account if present, otherwise registers null as guest
+            // Connects account if present, otherwise registers null as guest
             user: req.user ? req.user.id : null
         });
 

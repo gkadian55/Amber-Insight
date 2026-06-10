@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { styles, getUploadBtnStyle } from '../styles/UploadPageCSS';
+import { API_BASE_URL } from '../config';
 
 const UploadPage = () => {
     const { isAuthenticated, user, logout } = useAuth();
@@ -29,7 +30,7 @@ const UploadPage = () => {
         if (isAuthenticated) {
             const token = localStorage.getItem('token');
             const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-            fetch('http://localhost:5000/api/documents', { headers })
+            fetch(`${API_BASE_URL}/api/documents`, { headers })
                 .then(res => res.json())
                 .then(data => { if (Array.isArray(data)) setSavedDocs(data); })
                 .catch(err => console.error("Error fetching documents:", err));
@@ -50,7 +51,7 @@ const UploadPage = () => {
                 headers['Authorization'] = `Bearer ${token}`;
             }
 
-            const response = await fetch('http://localhost:5000/api/documents/upload', {
+            const response = await fetch(`${API_BASE_URL}/api/documents/upload`, {
                 method: 'POST',
                 headers: headers,
                 body: formData
@@ -340,8 +341,8 @@ const UploadPage = () => {
                         </svg>
                     </div>
                     <div style={styles.loadingTextWrap}>
-                        <h2 style={styles.loadingTitle}>Analyzing Document Structure...</h2>
-                        <p style={styles.loadingSubtitle}>Gemini is extracting summaries and topics grounding analysis.</p>
+                        <h2 style={styles.loadingTitle}>Analyzing Document...</h2>
+                        <p style={styles.loadingSubtitle}>Amber is extracting summaries and topics grounding analysis.</p>
                     </div>
                 </div>
             )}

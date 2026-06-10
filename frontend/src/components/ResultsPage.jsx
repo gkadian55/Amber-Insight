@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 import ReactMarkdown from 'react-markdown';
 import { useAuth } from '../context/AuthContext';
 import { styles, getDocIconStyle } from '../styles/ResultsPageCSS';
@@ -58,7 +59,7 @@ const ResultsPage = () => {
             if (!token) {
                 if (targetId && targetId !== 'list') {
                     try {
-                        const docRes = await axios.get(`http://localhost:5000/api/documents/${targetId}`);
+                        const docRes = await axios.get(`${API_BASE_URL}/api/documents/${targetId}`);
                         if (docRes.data) {
                             const guestDoc = { ...docRes.data, chatHistory: docRes.data.chatHistory || [] };
                             setDocumentsList([guestDoc]);
@@ -74,7 +75,7 @@ const ResultsPage = () => {
 
             // LOGGED IN: Fetch the full user document list
             const config = { headers: { Authorization: `Bearer ${token}` } };
-            const response = await axios.get('http://localhost:5000/api/documents', config);
+            const response = await axios.get(`${API_BASE_URL}/api/documents`, config);
             const dbDocs = (response.data || []).map(doc => ({
                 ...doc,
                 chatHistory: doc.chatHistory || []
@@ -182,7 +183,7 @@ const ResultsPage = () => {
             const token = localStorage.getItem('token');
             const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
 
-            const response = await axios.post(`http://localhost:5000/api/documents/${activeDocument._id}/chat`, {
+            const response = await axios.post(`${API_BASE_URL}/api/documents/${activeDocument._id}/chat`, {
                 question: text
             }, config);
 
@@ -218,7 +219,7 @@ const ResultsPage = () => {
                     headers['Authorization'] = `Bearer ${token}`;
                 }
 
-                const response = await fetch('http://localhost:5000/api/documents/upload', {
+                const response = await fetch(`${API_BASE_URL}/api/documents/upload`, {
                     method: 'POST',
                     headers: headers,
                     body: formData

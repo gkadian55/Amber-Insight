@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { styles } from '../styles/SignupPageCSS';
+import { API_BASE_URL } from '../config';
 
 const SignupPage = () => {
     const { login } = useAuth();
@@ -20,7 +21,7 @@ const SignupPage = () => {
         setLoading(true);
 
         try {
-            const response = await fetch('http://localhost:5000/api/auth/signup', {
+            const response = await fetch(`${API_BASE_URL}/api/auth/signup`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)
