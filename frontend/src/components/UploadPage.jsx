@@ -106,8 +106,8 @@ const UploadPage = () => {
             <div className="glow-orb" style={styles.glowOrbBottom} />
 
             {/* Navigation Header */}
-            <header style={styles.header}>
-                <div style={styles.logoLink} onClick={() => navigate('/')}>
+            <header style={styles.header} className="upload-header">
+                <div style={styles.logoLink} className="logo-link" onClick={() => navigate('/')}>
                     <div style={styles.logoIconBox}>
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M17.657 16.657L13.414 20.9M9.879 17.364l-4.243-4.243m12.021-3.535A8 8 0 114 12a8.001 8.001 0 0113.657-5.657l-1.414 1.414" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -136,18 +136,18 @@ const UploadPage = () => {
             </header>
 
             {/* MainContainer */}
-            <main style={styles.mainHero}>
+            <main style={styles.mainHero} className="main-hero">
 
                 {/* LEFT DECK */}
-                <div style={styles.mockupDeck}>
+                <div style={styles.mockupDeck} className="mockup-deck">
                     <div style={styles.mockupGlow} />
 
-                    <div className="animate-float-1" style={{ ...styles.floatCard, ...styles.floatCard1 }}>
+                    <div className="animate-float-1 mockup-card mockup-card-1" style={{ ...styles.floatCard, ...styles.floatCard1 }}>
                         <div style={styles.floatCardHeader}>
                             <div style={styles.fileIconPdf}>PDF</div>
                             <div>
-                                <div style={styles.floatCardFileName}>Q4 Financial Report.pdf</div>
-                                <div style={styles.floatCardFileMeta}>1.2 MB • 24 pages</div>
+                                <div style={styles.floatCardFileName} className="mockup-card-filename">Q4 Financial Report.pdf</div>
+                                <div style={styles.floatCardFileMeta} className="mockup-card-filemeta">1.2 MB • 24 pages</div>
                             </div>
                         </div>
                         <div style={styles.floatCardLines}>
@@ -157,12 +157,12 @@ const UploadPage = () => {
                         </div>
                     </div>
 
-                    <div className="animate-float-2" style={{ ...styles.floatCard, ...styles.floatCard2 }}>
+                    <div style={{ ...styles.floatCard, ...styles.floatCard2 }} className="animate-float-2 mockup-card mockup-card-2">
                         <div style={styles.floatCardHeader}>
                             <div style={styles.fileIconDocx}>W</div>
                             <div>
-                                <div style={styles.floatCardFileName}>Product Strategy.docx</div>
-                                <div style={styles.floatCardFileMeta}>860 KB • 18 pages</div>
+                                <div style={styles.floatCardFileName} className="mockup-card-filename">Product Strategy.docx</div>
+                                <div style={styles.floatCardFileMeta} className="mockup-card-filemeta">860 KB • 18 pages</div>
                             </div>
                         </div>
                         <div style={styles.floatCardLines}>
@@ -171,12 +171,12 @@ const UploadPage = () => {
                         </div>
                     </div>
 
-                    <div className="animate-float-3" style={{ ...styles.floatCard, ...styles.floatCard3 }}>
+                    <div style={{ ...styles.floatCard, ...styles.floatCard3 }} className="animate-float-3 mockup-card mockup-card-3">
                         <div style={styles.floatCardHeader}>
                             <div style={styles.fileIconPptx}>P</div>
                             <div>
-                                <div style={styles.floatCardFileName}>Market Analysis.pptx</div>
-                                <div style={styles.floatCardFileMeta}>2.1 MB • 32 slides</div>
+                                <div style={styles.floatCardFileName} className="mockup-card-filename">Market Analysis.pptx</div>
+                                <div style={styles.floatCardFileMeta} className="mockup-card-filemeta">2.1 MB • 32 slides</div>
                             </div>
                         </div>
                         <div style={styles.pptxChartRow}>
@@ -188,10 +188,10 @@ const UploadPage = () => {
                         </div>
                     </div>
 
-                    <div className="animate-float-2" style={styles.summaryCard}>
+                    <div style={styles.summaryCard} className="animate-float-2 mockup-card mockup-summary-card">
                         <div style={styles.summaryCardHeader}>
                             <span style={{ fontSize: '16px' }}>✨</span>
-                            <span style={styles.summaryCardTitle}>Summary</span>
+                            <span style={styles.summaryCardTitle} className="mockup-summary-title">Summary</span>
                         </div>
                         <div style={styles.summaryLines}>
                             <div style={styles.summaryLineHighlight} />
@@ -206,7 +206,7 @@ const UploadPage = () => {
                         </div>
                     </div>
 
-                    <div className="animate-float-3" style={styles.chatCard}>
+                    <div style={styles.chatCard} className="animate-float-3 mockup-card mockup-chat-card">
                         <div style={styles.chatUserTurn}>
                             <div style={styles.chatUserBubble}>
                                 What were the main revenue drivers?
@@ -218,11 +218,11 @@ const UploadPage = () => {
                             <div style={styles.chatAiAvatar}>🔥</div>
                             <div style={styles.chatAiBubble}>
                                 The main revenue drivers were strong subscription growth and expansion in enterprise accounts.
-                                <div style={styles.chatCitations}>
-                                    <span style={styles.chatCitation}>
+                                <div style={styles.chatCitations} className="mockup-chat-citations">
+                                    <span style={styles.chatCitation} className="mockup-chat-citation">
                                         <span style={{ color: 'var(--color-pdf)' }}>📄</span> Q4 Report p.7
                                     </span>
-                                    <span style={styles.chatCitation}>
+                                    <span style={styles.chatCitation} className="mockup-chat-citation">
                                         <span style={{ color: 'var(--color-docx)' }}>📄</span> Product Strategy p.14
                                     </span>
                                 </div>
@@ -238,7 +238,7 @@ const UploadPage = () => {
 
 
                 {/* RIGHT DECK */}
-                <div style={styles.heroTextCol}>
+                <div style={styles.heroTextCol} className="hero-text-col">
 
                     {isAuthenticated && user?.name && (
                         <p style={styles.greetingText}>
@@ -246,12 +246,12 @@ const UploadPage = () => {
                         </p>
                     )}
 
-                    <h1 style={styles.heroH1}>
+                    <h1 style={styles.heroH1} className="hero-h1">
                         Summarize anything. <br />
                         <span style={styles.heroH1Gradient}>Chat with it.</span>
                     </h1>
 
-                    <p style={styles.heroSubtitle}>
+                    <p style={styles.heroSubtitle} className="hero-subtitle">
                         Upload a document, get instant insights, and have smart conversations grounded in your content.
                     </p>
 
@@ -262,6 +262,7 @@ const UploadPage = () => {
                         onDrop={handleDrop}
                         onClick={triggerFileSelect}
                         style={styles.uploadZoneWrapper}
+                        className="upload-zone-wrapper"
                     >
                         <input
                             type="file"
@@ -277,7 +278,7 @@ const UploadPage = () => {
                         </div>
                     </div>
 
-                    <div style={styles.checkmarksRow}>
+                    <div style={styles.checkmarksRow} className="checkmarks-row">
                         <span style={styles.checkItem}>
                             <span style={styles.checkTick}>✓</span> PDF, PPTX, Images
                         </span>
@@ -292,8 +293,8 @@ const UploadPage = () => {
             </main>
 
             {/* Feature Cards */}
-            <section id="features" style={styles.featuresSection}>
-                <div style={styles.featuresGrid}>
+            <section id="features" style={styles.featuresSection} className="features-section">
+                <div style={styles.featuresGrid} className="features-grid">
 
                     <div className="premium-card" style={styles.featureCard}>
                         <div style={styles.featureIcon}>⚡</div>
@@ -357,7 +358,7 @@ const UploadPage = () => {
 
             {/* Slide-out Saved Files Sidebar */}
             {showSavedSidebar && (
-                <div style={styles.savedSidebarPanel}>
+                <div style={styles.savedSidebarPanel} className="saved-sidebar-panel">
                     <div style={styles.savedSidebarHeader}>
                         <span style={styles.savedSidebarTitle}>Saved Summaries</span>
                         <button

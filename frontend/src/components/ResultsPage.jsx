@@ -12,6 +12,10 @@ const ResultsPage = () => {
     const { user } = useAuth();
     const chatContainerRef = useRef(null);
 
+    // Mobile layout states
+    const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+    const [activeMobileView, setActiveMobileView] = useState('document'); // 'document' or 'chat'
+
     // Clipboard state
     const [copied, setCopied] = useState(false);
     const fileInputRef = useRef(null);
@@ -136,6 +140,7 @@ const ResultsPage = () => {
     };
 
     const handleSelectDocument = (doc) => {
+        setMobileSidebarOpen(false);
         navigate(`/results/${doc._id}`);
     };
 
@@ -257,8 +262,49 @@ const ResultsPage = () => {
 
     return (
         <div className="workspace-container">
+            {/* Mobile Header Bar */}
+            <div className="mobile-header-bar">
+                <button className="mobile-hamburger-btn" onClick={() => setMobileSidebarOpen(true)} aria-label="Toggle Sidebar">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
+                <div className="mobile-header-logo" onClick={() => navigate('/')}>
+                    <div style={styles.logoIconBox} className="mobile-logo-icon-box">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M17.657 16.657L13.414 20.9M9.879 17.364l-4.243-4.243m12.021-3.535A8 8 0 114 12a8.001 8.001 0 0113.657-5.657l-1.414 1.414" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                    </div>
+                    <span style={styles.logoText} className="mobile-logo-text">Amber Insight</span>
+                </div>
+                <div className="mobile-view-switcher">
+                    <button
+                        className={`mobile-switcher-btn ${activeMobileView === 'document' ? 'active' : ''}`}
+                        onClick={() => setActiveMobileView('document')}
+                    >
+                        Doc
+                    </button>
+                    <button
+                        className={`mobile-switcher-btn ${activeMobileView === 'chat' ? 'active' : ''}`}
+                        onClick={() => setActiveMobileView('chat')}
+                    >
+                        Chat
+                    </button>
+                </div>
+            </div>
+
+            {/* Mobile Sidebar backdrop */}
+            {mobileSidebarOpen && (
+                <div
+                    className="mobile-sidebar-backdrop"
+                    onClick={() => setMobileSidebarOpen(false)}
+                />
+            )}
+
             {/* LEFT SIDEBAR */}
-            <aside className="workspace-sidebar">
+            <aside className={`workspace-sidebar ${mobileSidebarOpen ? 'mobile-open' : ''}`}>
                 <div className="sidebar-logo" onClick={() => navigate('/')}>
                     <div style={styles.logoIconBox}>
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -353,7 +399,7 @@ const ResultsPage = () => {
             </aside>
 
             {/* MIDDLE CONTENT PANE */}
-            <main className="workspace-content-pane">
+            <main className={`workspace-content-pane ${activeMobileView === 'document' ? 'mobile-active' : 'mobile-inactive'}`}>
                 <div className="content-header">
                     <div className="content-breadcrumb" style={styles.breadcrumb}>
                         Library / <span className="content-breadcrumb-active">{activeDocument?.fileName}</span>
@@ -451,7 +497,7 @@ const ResultsPage = () => {
             </main>
 
             {/* RIGHT CHAT PANE */}
-            <section className="workspace-chat-pane">
+            <section className={`workspace-chat-pane ${activeMobileView === 'chat' ? 'mobile-active' : 'mobile-inactive'}`}>
                 <div className="chat-header">
                     <span className="chat-header-title" style={styles.chatHeaderTitle}>Ask Amber</span>
                     <div style={styles.chatHeaderStatusRow}>
