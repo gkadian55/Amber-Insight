@@ -1,3 +1,11 @@
+const dns = require('dns');
+try {
+    dns.setDefaultResultOrder('ipv4first');
+    dns.setServers(['8.8.8.8', '1.1.1.1']);
+} catch (e) {
+    // Fallback to default OS
+}
+
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
